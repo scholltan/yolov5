@@ -481,6 +481,14 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
             # Apply cutouts
             # if random.random() < 0.9:
             #     labels = cutout(img, labels)
+                        # Apply cutouts
+            # Apply MixUp
+            if random.random() < 0.5:
+                if self.mosaic:
+                    r_index = random.choice(self.indices)
+                    r_img, r_labels = load_mosaic(self, r_index)
+                    img = (img + r_img) / 2
+                    labels += r_labels
 
         nL = len(labels)  # number of labels
         if nL:
