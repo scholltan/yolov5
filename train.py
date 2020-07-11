@@ -263,7 +263,7 @@ def train(hyp):
                 print('WARNING: non-finite loss, ending training ', loss_items)
                 return results
             # MixUp loss
-            loss *= mixup_ratio
+            loss *= mixup_ratio if mixup_ratio else 1
             
             # Backward
             if mixed_precision:
