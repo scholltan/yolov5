@@ -486,7 +486,7 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
             if random.random() < 0.5:
                 if self.mosaic:
                     r_index = random.randint(0, len(self.img_files))
-                    while r_index == index: r_index = random.randint(0, len(self.img_files))
+                    while r_index == index: r_index = random.randint(0, len(self.img_files) - 1)
                     r_img, r_labels = load_mosaic(self, r_index)
                     img = (img + r_img) // 2
                     labels = np.concatenate((labels,r_labels), axis = 0)
