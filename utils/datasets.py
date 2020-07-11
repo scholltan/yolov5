@@ -483,12 +483,13 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
             #     labels = cutout(img, labels)
                         # Apply cutouts
             # Apply MixUp
+            mixup_ratio = None
             if random.random() < 0.5:
+                mixup_ratio = np.random.beta(0.3, 0.3) # alpha = beta = 0.3
                 if self.mosaic:
-                    r_index = random.randint(0, len(self.img_files))
-                    while r_index == index: r_index = random.randint(0, len(self.img_files) - 1)
+                    r_index = random.choice(np.delete(np.arange(len(self.img_files)), index))
                     r_img, r_labels = load_mosaic(self, r_index)
-                    img = (img + r_img) // 2
+                    img = img * mixup_ratio + r_img * (1 - mixup_ratio)
                     labels = np.concatenate((labels,r_labels), axis = 0)
 
         nL = len(labels)  # number of labels
@@ -523,7 +524,7 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
         img = img[:, :, ::-1].transpose(2, 0, 1)  # BGR to RGB, to 3x416x416
         img = np.ascontiguousarray(img)
 
-        return torch.from_numpy(img), labels_out, self.img_files[index], shapes
+        return torch.from_numpy(img), labels_out, self.img_files[index], shapes, mixup_ratio
 
     @staticmethod
     def collate_fn(batch):
