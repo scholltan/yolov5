@@ -445,6 +445,28 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
             # Load mosaic
             img, labels = load_mosaic(self, index)
             shapes = None
+            #CutMix
+            def CutMix(image, boxes, r_image, r_boxes):
+                #print('processing CutMix')
+                #print(boxes.shape)
+                mixup_image = image.copy()
+                imsize = min(image.shape[0], r_image.shape[0])
+                x1, y1 = [int(random.uniform(imsize * 0.0, imsize * 0.45)) for _ in range(2)]
+                x2, y2 = [int(random.uniform(imsize * 0.55, imsize * 1.0)) for _ in range(2)]
+                
+                mixup_boxes = r_boxes.copy()
+                mixup_boxes[:, [1, 3]] = mixup_boxes[:, [1, 3]].clip(min=x1, max=x2)
+                mixup_boxes[:, [2, 4]] = mixup_boxes[:, [2, 4]].clip(min=y1, max=y2)
+                mixup_boxes = mixup_boxes.astype(np.int32)
+                mixup_boxes = mixup_boxes[np.where((mixup_boxes[:,3]-mixup_boxes[:,1])*(mixup_boxes[:,4]-mixup_boxes[:,2]) > 0)]
+                mixup_image[y1:y2, x1:x2] = (mixup_image[y1:y2, x1:x2] * 0.5 + r_image[y1:y2, x1:x2] * 0.5).astype(np.uint8)
+
+                mixup_boxes = np.concatenate((boxes, mixup_boxes), axis=0)
+                #print(mixup_boxes)
+                return mixup_image, mixup_boxes
+            if random.random() < 0.5:
+                img2, labels2 = load_mosaic(self, random.randint(0, len(self.labels) - 1))
+                img, labels = CutMix(img, labels, img2, labels2)
 
         else:
             # Load image
